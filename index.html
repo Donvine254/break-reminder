@@ -550,7 +550,28 @@
           updateCountdown();
         }, 1000);
       }
+    // preload notification audio and unlock on first user interaction
+    const notificationAudio = new Audio('audio/take-a-break.mp3');
+    notificationAudio.preload = 'auto';
+    notificationAudio.load();
 
+    document.addEventListener('click', function _unlockAudio() {
+        // try to play briefly to satisfy browser gesture requirements
+        notificationAudio.play().then(() => {
+            notificationAudio.pause();
+            notificationAudio.currentTime = 0;
+        }).catch(() => {});
+        document.removeEventListener('click', _unlockAudio);
+    });
+
+    // Override the oscillator-based playSound after the rest of the script runs
+    setTimeout(() => {
+        window.playSound = function () {
+            if (!soundEnabled) return;
+            notificationAudio.currentTime = 0;
+            notificationAudio.play().catch(() => {});
+        };
+    }, 0);
       function stopTimer() {
         isRunning = false;
         clearInterval(timerInterval);

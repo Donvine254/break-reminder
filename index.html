@@ -461,6 +461,7 @@
       let isOnBreak = false; // Flag to track if user is on break
       let notificationsEnabled = true;
       let soundEnabled = true;
+      let currentAudio = null; // Track the currently playing audio
 
       // Break duration in seconds (default: 3 minutes)
       // You can change this value: 120 = 2min, 180 = 3min, 300 = 5min
@@ -575,6 +576,10 @@
       }
 
       function startTimer() {
+        // Clear any existing timers to avoid duplicates
+        clearInterval(timerInterval);
+        clearInterval(breakInterval);
+
         // Get values from the time input fields
         const hours = parseInt(document.getElementById("hours").value) || 0;
         const minutes = parseInt(document.getElementById("minutes").value) || 0;
@@ -617,6 +622,12 @@
       // ========================================
 
       function startBreakTime() {
+        // Avoid starting multiple break timers / playing audio multiple times
+        if (isOnBreak) return;
+
+        // Stop the work timer so startBreakTime isn't called repeatedly
+        clearInterval(timerInterval);
+
         // Set flag to indicate we're on break
         isOnBreak = true;
 
@@ -639,13 +650,15 @@
 
           // When break is over, resume work timer
           if (breakTimeRemaining <= 0) {
+            // Clear this interval here and perform end-of-break actions
+            clearInterval(breakInterval);
             endBreakTime();
           }
         }, 1000);
       }
 
       function endBreakTime() {
-        // Clear the break timer
+        // Ensure break interval is cleared
         clearInterval(breakInterval);
 
         // Reset flags
@@ -662,8 +675,17 @@
         // Update status text back to work mode
         document.querySelector(".status-text").textContent = "Next break in:";
 
-        // The work timer continues running automatically
-        // No need to restart timerInterval, it's still running
+        // Restart the work timer so the cycle continues
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          remainingTime--;
+
+          if (remainingTime <= 0) {
+            startBreakTime();
+          }
+
+          updateCountdown();
+        }, 1000);
       }
 
       function stopTimer() {
@@ -672,6 +694,13 @@
         isOnBreak = false;
         clearInterval(timerInterval);
         clearInterval(breakInterval);
+
+        // Stop any currently playing audio
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio = null;
+        }
 
         // Reset UI
         document.getElementById("startBtn").textContent = "Start Reminder";
@@ -720,7 +749,14 @@
       // ========================================
 
       function showNotification() {
+        // Stop any currently playing audio first
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+
         // Pick a random message and its corresponding audio
+        // This ensures the SAME index is used for both message and audio
         const randomIndex = Math.floor(Math.random() * messages.length);
         const message = messages[randomIndex];
 
@@ -729,6 +765,7 @@
         document.querySelector(".modal-message").textContent = message;
 
         // Play the corresponding audio if sound is enabled
+        // We pass the SAME randomIndex so the audio matches the message
         if (soundEnabled) {
           playSound(randomIndex); // Pass the index to play matching audio
         }
@@ -746,6 +783,13 @@
       function dismissNotification() {
         // Close the modal when user clicks "Got it!"
         document.getElementById("modal").classList.remove("show");
+
+        // Stop the audio when dismissing notification
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+          currentAudio = null;
+        }
       }
 
       // ========================================
@@ -756,17 +800,29 @@
         // Exit if sound is disabled
         if (!soundEnabled) return;
 
+        // Stop any currently playing audio first
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+
         // Create a new Audio element with the URL at the specified index
-        const audio = new Audio(audioUrls[index]);
+        // IMPORTANT: Only ONE audio file is created and played
+        currentAudio = new Audio(audioUrls[index]);
 
         // Set volume level (0.0 = silent, 1.0 = full volume)
-        audio.volume = 0.8; // 80% volume - adjust as needed
+        currentAudio.volume = 0.8; // 80% volume - adjust as needed
 
         // Play the audio file
-        audio.play().catch((error) => {
+        currentAudio.play().catch((error) => {
           // If audio fails to play, log error and use fallback beep
           console.error("Error playing audio:", error);
           playBeepSound(); // Fallback to simple beep sound
+        });
+
+        // Clean up when audio finishes playing
+        currentAudio.addEventListener("ended", () => {
+          currentAudio = null;
         });
       }
 

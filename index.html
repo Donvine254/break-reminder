@@ -7,8 +7,12 @@
     <link rel="manifest" href="public/site.webmanifest" />
     <link rel="icon" href="/public/favicon.ico" type="image/x-icon" />
     <meta name="theme-color" content="#667eea" />
-    <meta name="description" content="PulseBreak is a free Windows app that helps you stay active by reminding you to stand up, stretch, or take a walk at regular intervals. Boost your wellbeing with gentle notifications and sound alerts while working.">
-<meta name="keywords" content="PulseBreak, digital wellbeing, stand reminder, movement timer, break alert, wellness app, Windows tray app, productivity, health tracker">
+    <meta
+      name="description"
+      content="PulseBreak is a free Windows app that helps you stay active by reminding you to stand up, stretch, or take a walk at regular intervals. Boost your wellbeing with gentle notifications and sound alerts while working." />
+    <meta
+      name="keywords"
+      content="PulseBreak, digital wellbeing, stand reminder, movement timer, break alert, wellness app, Windows tray app, productivity, health tracker" />
     <style>
       * {
         margin: 0;
@@ -450,41 +454,84 @@
 
     <script>
       let timerInterval = null;
+      let breakInterval = null; // Timer for the break period
       let remainingTime = 0;
+      let breakTimeRemaining = 0; // Tracks remaining break time
       let isRunning = false;
+      let isOnBreak = false; // Flag to track if user is on break
       let notificationsEnabled = true;
       let soundEnabled = true;
 
+      // Break duration in seconds (default: 3 minutes)
+      // You can change this value: 120 = 2min, 180 = 3min, 300 = 5min
+      const BREAK_DURATION = 180; // 3 minutes break
+
+      // ========================================
+      // MESSAGES AND AUDIO CONFIGURATION
+      // ========================================
+
+      // Text messages shown in the modal popup
+      // Each message corresponds to an audio file below
       const messages = [
-        "Time for a break! Stand up and stretch your legs.",
-        "Break time! Give your eyes a rest from the screen.",
-        "Take a breather! Walk around for a few minutes.",
-        "Reminder: Hydrate and take a quick break!",
-        "Time to pause! Stretch and refresh your mind.",
-        "Break reminder! Step away and relax for a moment.",
+        "Time for a break! Stand up and stretch your legs.", // Message 0
+        "Break time! Give your eyes a rest from the screen.", // Message 1
+        "Take a breather! Walk around for a few minutes.", // Message 2
+        "Reminder: Hydrate and take a quick break!", // Message 3
+        "Time to pause! Stretch and refresh your mind.", // Message 4
+        "Break reminder! Step away and relax for a moment.", // Message 5
       ];
 
-      // Request notification permission on load
+      // Audio file URLs - each one matches a message above
+      // When a notification shows, a random message + its audio will play
+      const audioUrls = [
+        "/audio/break1.mp3", // Plays for message 0: "Time for a break! Stand up and stretch..."
+        "/audio/break2.mp3", // Plays for message 1: "Break time! Give your eyes a rest..."
+        "/audio/break3.mp3", // Plays for message 2: "Take a breather! Walk around..."
+        "/audio/break4.mp3", // Plays for message 3: "Reminder: It's time to hydrate..."
+        "/audio/break5.mp3", // Plays for message 4: "Time to pause! Stretch your arms..."
+        "/audio/break6.mp3", // Plays for message 5: "Break reminder! Step away from your desk..."
+      ];
+
+      // ========================================
+      // NOTIFICATION PERMISSION REQUEST
+      // ========================================
+
+      // Ask user for permission to show desktop notifications when page loads
       if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
       }
 
-      // Preset buttons
+      // ========================================
+      // PRESET BUTTON HANDLERS
+      // ========================================
+
+      // Handle clicks on preset time buttons (20min, 30min, etc.)
       document.querySelectorAll(".preset-btn").forEach((btn) => {
         btn.addEventListener("click", function () {
+          // Remove 'active' class from all preset buttons
           document
             .querySelectorAll(".preset-btn")
             .forEach((b) => b.classList.remove("active"));
+
+          // Add 'active' class to the clicked button
           this.classList.add("active");
 
+          // Get the minutes value from the button's data attribute
           const minutes = parseInt(this.dataset.minutes);
+
+          // Update the custom time inputs to match the preset
           document.getElementById("hours").value = Math.floor(minutes / 60);
           document.getElementById("minutes").value = minutes % 60;
           document.getElementById("seconds").value = 0;
         });
       });
 
-      // Custom input handlers
+      // ========================================
+      // CUSTOM TIME INPUT HANDLERS
+      // ========================================
+
+      // When user manually changes hours, minutes, or seconds
+      // Remove the 'active' state from preset buttons
       ["hours", "minutes", "seconds"].forEach((id) => {
         document.getElementById(id).addEventListener("input", function () {
           document
@@ -493,98 +540,163 @@
         });
       });
 
+      // ========================================
+      // TOGGLE OPTIONS (Notifications & Sound)
+      // ========================================
+
       function toggleOption(option) {
         const toggle = document.getElementById(`toggle-${option}`);
         toggle.classList.toggle("active");
 
         if (option === "notifications") {
+          // Update notifications enabled flag
           notificationsEnabled = toggle.classList.contains("active");
+
+          // Request permission if enabling notifications for first time
           if (notificationsEnabled && Notification.permission === "default") {
             Notification.requestPermission();
           }
         } else if (option === "sound") {
+          // Update sound enabled flag
           soundEnabled = toggle.classList.contains("active");
         }
       }
 
+      // ========================================
+      // START/STOP TIMER CONTROL
+      // ========================================
+
       function toggleTimer() {
         if (isRunning) {
-          stopTimer();
+          stopTimer(); // Stop if already running
         } else {
-          startTimer();
+          startTimer(); // Start if not running
         }
       }
 
       function startTimer() {
+        // Get values from the time input fields
         const hours = parseInt(document.getElementById("hours").value) || 0;
         const minutes = parseInt(document.getElementById("minutes").value) || 0;
         const seconds = parseInt(document.getElementById("seconds").value) || 0;
 
+        // Calculate total time in seconds
         remainingTime = hours * 3600 + minutes * 60 + seconds;
 
+        // Validate that user set a time
         if (remainingTime === 0) {
           alert("Please set a time interval!");
           return;
         }
 
+        // Update UI to show timer is running
         isRunning = true;
+        isOnBreak = false;
         document.getElementById("startBtn").textContent = "Stop Reminder";
         document.getElementById("startBtn").classList.add("active");
         document.getElementById("status").classList.add("active");
 
+        // Show initial countdown
         updateCountdown();
+
+        // Start the work timer - counts down every second
         timerInterval = setInterval(() => {
           remainingTime--;
 
+          // When work time reaches zero, start break
           if (remainingTime <= 0) {
-            showNotification();
-            // Reset and continue
-            const hours = parseInt(document.getElementById("hours").value) || 0;
-            const minutes =
-              parseInt(document.getElementById("minutes").value) || 0;
-            const seconds =
-              parseInt(document.getElementById("seconds").value) || 0;
-            remainingTime = hours * 3600 + minutes * 60 + seconds;
+            startBreakTime(); // Trigger break period
           }
 
-          updateCountdown();
+          updateCountdown(); // Update the display
         }, 1000);
       }
-    // preload notification audio and unlock on first user interaction
-    const notificationAudio = new Audio('audio/take-a-break.mp3');
-    notificationAudio.preload = 'auto';
-    notificationAudio.load();
 
-    document.addEventListener('click', function _unlockAudio() {
-        // try to play briefly to satisfy browser gesture requirements
-        notificationAudio.play().then(() => {
-            notificationAudio.pause();
-            notificationAudio.currentTime = 0;
-        }).catch(() => {});
-        document.removeEventListener('click', _unlockAudio);
-    });
+      // ========================================
+      // BREAK TIME MANAGEMENT
+      // ========================================
 
-    // Override the oscillator-based playSound after the rest of the script runs
-    setTimeout(() => {
-        window.playSound = function () {
-            if (!soundEnabled) return;
-            notificationAudio.currentTime = 0;
-            notificationAudio.play().catch(() => {});
-        };
-    }, 0);
+      function startBreakTime() {
+        // Set flag to indicate we're on break
+        isOnBreak = true;
+
+        // Set break duration
+        breakTimeRemaining = BREAK_DURATION;
+
+        // Show the notification with random message and audio
+        showNotification();
+
+        // Update status text to show it's break time
+        document.querySelector(".status-text").textContent =
+          "Break time! Resuming in:";
+
+        // Start break countdown timer
+        breakInterval = setInterval(() => {
+          breakTimeRemaining--;
+
+          // Update countdown display to show break time
+          updateBreakCountdown();
+
+          // When break is over, resume work timer
+          if (breakTimeRemaining <= 0) {
+            endBreakTime();
+          }
+        }, 1000);
+      }
+
+      function endBreakTime() {
+        // Clear the break timer
+        clearInterval(breakInterval);
+
+        // Reset flags
+        isOnBreak = false;
+
+        // Get the original work duration from inputs
+        const hours = parseInt(document.getElementById("hours").value) || 0;
+        const minutes = parseInt(document.getElementById("minutes").value) || 0;
+        const seconds = parseInt(document.getElementById("seconds").value) || 0;
+
+        // Reset work timer to original duration
+        remainingTime = hours * 3600 + minutes * 60 + seconds;
+
+        // Update status text back to work mode
+        document.querySelector(".status-text").textContent = "Next break in:";
+
+        // The work timer continues running automatically
+        // No need to restart timerInterval, it's still running
+      }
+
       function stopTimer() {
+        // Stop all timers
         isRunning = false;
+        isOnBreak = false;
         clearInterval(timerInterval);
+        clearInterval(breakInterval);
+
+        // Reset UI
         document.getElementById("startBtn").textContent = "Start Reminder";
         document.getElementById("startBtn").classList.remove("active");
         document.getElementById("status").classList.remove("active");
+        document.querySelector(".status-text").textContent = "Next break in:";
       }
 
+      // ========================================
+      // COUNTDOWN DISPLAY UPDATES
+      // ========================================
+
       function updateCountdown() {
+        // If on break, show break countdown instead
+        if (isOnBreak) {
+          updateBreakCountdown();
+          return;
+        }
+
+        // Calculate hours, minutes, seconds from remaining time
         const hours = Math.floor(remainingTime / 3600);
         const minutes = Math.floor((remainingTime % 3600) / 60);
         const seconds = remainingTime % 60;
 
+        // Format and display as HH:MM:SS
         document.getElementById("countdown").textContent = `${String(
           hours
         ).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
@@ -592,19 +704,36 @@
         ).padStart(2, "0")}`;
       }
 
-      function showNotification() {
-        const message = messages[Math.floor(Math.random() * messages.length)];
+      function updateBreakCountdown() {
+        // Calculate minutes and seconds from break time
+        const minutes = Math.floor(breakTimeRemaining / 60);
+        const seconds = breakTimeRemaining % 60;
 
-        // Show modal
+        // Format and display break time as MM:SS
+        document.getElementById("countdown").textContent = `${String(
+          minutes
+        ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      // ========================================
+      // NOTIFICATION SYSTEM
+      // ========================================
+
+      function showNotification() {
+        // Pick a random message and its corresponding audio
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        const message = messages[randomIndex];
+
+        // Show the modal popup with the selected message
         document.getElementById("modal").classList.add("show");
         document.querySelector(".modal-message").textContent = message;
 
-        // Play sound
+        // Play the corresponding audio if sound is enabled
         if (soundEnabled) {
-          playSound();
+          playSound(randomIndex); // Pass the index to play matching audio
         }
 
-        // Browser notification
+        // Show browser notification if permissions granted
         if (notificationsEnabled && Notification.permission === "granted") {
           new Notification("Break Time! ⏰", {
             body: message,
@@ -615,11 +744,39 @@
       }
 
       function dismissNotification() {
+        // Close the modal when user clicks "Got it!"
         document.getElementById("modal").classList.remove("show");
       }
 
-      function playSound() {
-        // Create a simple beep sound using Web Audio API
+      // ========================================
+      // AUDIO PLAYBACK SYSTEM
+      // ========================================
+
+      function playSound(index) {
+        // Exit if sound is disabled
+        if (!soundEnabled) return;
+
+        // Create a new Audio element with the URL at the specified index
+        const audio = new Audio(audioUrls[index]);
+
+        // Set volume level (0.0 = silent, 1.0 = full volume)
+        audio.volume = 0.8; // 80% volume - adjust as needed
+
+        // Play the audio file
+        audio.play().catch((error) => {
+          // If audio fails to play, log error and use fallback beep
+          console.error("Error playing audio:", error);
+          playBeepSound(); // Fallback to simple beep sound
+        });
+      }
+
+      // ========================================
+      // FALLBACK BEEP SOUND
+      // ========================================
+
+      function playBeepSound() {
+        // Creates a simple beep using Web Audio API
+        // This is a backup if audio files fail to load
         const audioContext = new (window.AudioContext ||
           window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
@@ -628,8 +785,8 @@
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = 800;
-        oscillator.type = "sine";
+        oscillator.frequency.value = 800; // Frequency in Hz
+        oscillator.type = "sine"; // Sine wave for smooth tone
 
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(

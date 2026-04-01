@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pulse Break</title>
-    <link rel="manifest" href="public/site.webmanifest" />
+    <!-- Add manifest -->
+    <link rel="manifest" href="/webmanifest.json" />
+    <link rel="stylesheet" href="styles.css" />
     <link rel="icon" href="/public/favicon.ico" type="image/x-icon" />
     <meta name="theme-color" content="#667eea" />
     <meta
@@ -13,356 +15,14 @@
     <meta
       name="keywords"
       content="PulseBreak, digital wellbeing, stand reminder, movement timer, break alert, wellness app, Windows tray app, productivity, health tracker" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-      }
-
-      .container {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 24px;
-        padding: 40px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 480px;
-        width: 100%;
-        animation: slideUp 0.5s ease-out;
-      }
-
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-      }
-
-      .icon {
-        font-size: 48px;
-        margin-bottom: 10px;
-      }
-
-      h1 {
-        color: #2d3748;
-        font-size: 28px;
-        margin-bottom: 8px;
-      }
-
-      .subtitle {
-        color: #718096;
-        font-size: 14px;
-      }
-
-      .preset-buttons {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 25px;
-      }
-
-      .preset-btn {
-        background: #f7fafc;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 12px 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-      }
-
-      .preset-btn:hover {
-        background: #edf2f7;
-        border-color: #667eea;
-        transform: translateY(-2px);
-      }
-
-      .preset-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
-        color: white;
-      }
-
-      .preset-time {
-        display: block;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 4px;
-      }
-
-      .preset-label {
-        display: block;
-        font-size: 12px;
-        opacity: 0.8;
-      }
-
-      .custom-section {
-        background: #f7fafc;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
-      }
-
-      .custom-title {
-        color: #2d3748;
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 15px;
-      }
-
-      .time-inputs {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-      }
-
-      .input-group {
-        text-align: center;
-      }
-
-      .input-group label {
-        display: block;
-        font-size: 12px;
-        color: #718096;
-        margin-bottom: 6px;
-      }
-
-      .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 24px;
-        font-weight: bold;
-        text-align: center;
-        transition: border-color 0.3s;
-      }
-
-      .input-group input:focus {
-        outline: none;
-        border-color: #667eea;
-      }
-
-      .options {
-        margin-bottom: 25px;
-      }
-
-      .option-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 15px;
-        background: #f7fafc;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
-
-      .option-item:hover {
-        background: #edf2f7;
-      }
-
-      .option-label {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #2d3748;
-        font-size: 15px;
-      }
-
-      .toggle {
-        position: relative;
-        width: 50px;
-        height: 26px;
-        background: #cbd5e0;
-        border-radius: 13px;
-        transition: background 0.3s;
-      }
-
-      .toggle.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-
-      .toggle::after {
-        content: "";
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
-        background: white;
-        border-radius: 50%;
-        transition: transform 0.3s;
-      }
-
-      .toggle.active::after {
-        transform: translateX(24px);
-      }
-
-      .start-btn {
-        width: 100%;
-        padding: 18px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 14px;
-        font-size: 18px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-      }
-
-      .start-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-      }
-
-      .start-btn:active {
-        transform: translateY(0);
-      }
-
-      .start-btn.active {
-        background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
-      }
-
-      .status {
-        text-align: center;
-        margin-top: 20px;
-        padding: 15px;
-        background: #edf2f7;
-        border-radius: 12px;
-        display: none;
-      }
-
-      .status.active {
-        display: block;
-        animation: fadeIn 0.3s ease-out;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      .status-text {
-        color: #2d3748;
-        font-size: 14px;
-        margin-bottom: 8px;
-      }
-
-      .countdown {
-        font-size: 32px;
-        font-weight: bold;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .notification-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s ease-out;
-      }
-
-      .notification-modal.show {
-        display: flex;
-      }
-
-      .modal-content {
-        background: white;
-        padding: 40px;
-        border-radius: 24px;
-        text-align: center;
-        max-width: 400px;
-        animation: scaleIn 0.3s ease-out;
-      }
-
-      @keyframes scaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.9);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-
-      .modal-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-      }
-
-      .modal-title {
-        font-size: 28px;
-        color: #2d3748;
-        margin-bottom: 15px;
-      }
-
-      .modal-message {
-        font-size: 16px;
-        color: #718096;
-        margin-bottom: 30px;
-        line-height: 1.5;
-      }
-
-      .modal-btn {
-        padding: 15px 40px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.2s;
-      }
-
-      .modal-btn:hover {
-        transform: translateY(-2px);
-      }
-    </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <div class="icon">⏰</div>
-        <h1>Mindful Break Reminder</h1>
+        <div class="icon">
+          <img src="/public/clock.png" title="logo" alt="logo" />
+        </div>
+        <h1>Pulse Break Reminder</h1>
         <p class="subtitle">Stay healthy, take regular breaks</p>
       </div>
 
@@ -379,7 +39,8 @@
           <span class="preset-time">45</span>
           <span class="preset-label">minutes</span>
         </button>
-        <button class="preset-btn" data-minutes="60">
+        <!-- Discourage longer breaks -->
+        <!-- <button class="preset-btn" data-minutes="60">
           <span class="preset-time">1h</span>
           <span class="preset-label">hour</span>
         </button>
@@ -390,7 +51,7 @@
         <button class="preset-btn" data-minutes="120">
           <span class="preset-time">2h</span>
           <span class="preset-label">hours</span>
-        </button>
+        </button> -->
       </div>
 
       <div class="custom-section">
@@ -414,14 +75,45 @@
       <div class="options">
         <div class="option-item" onclick="toggleOption('notifications')">
           <div class="option-label">
-            <span>🔔</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1rem"
+              height="1rem"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <title>notifications</title>
+              <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+              <path d="M22 8c0-2.3-.8-4.3-2-6" />
+              <path
+                d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+              <path d="M4 2C2.8 3.7 2 5.7 2 8" />
+            </svg>
             <span>Desktop Notifications</span>
           </div>
           <div class="toggle active" id="toggle-notifications"></div>
         </div>
         <div class="option-item" onclick="toggleOption('sound')">
           <div class="option-label">
-            <span>🔊</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1rem"
+              height="1rem"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <title>sound alert</title>
+              <path
+                d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+              <path d="M16 9a5 5 0 0 1 0 6" />
+              <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
+            </svg>
             <span>Sound Alert</span>
           </div>
           <div class="toggle active" id="toggle-sound"></div>
@@ -436,8 +128,10 @@
         <div class="status-text">Next break in:</div>
         <div class="countdown" id="countdown">00:30:00</div>
       </div>
+      <div class="tip">
+        <small>* For best results, try intervals under 60 minutes.</small>
+      </div>
     </div>
-
     <div class="notification-modal" id="modal">
       <div class="modal-content">
         <div class="modal-icon">🎯</div>
@@ -451,408 +145,7 @@
         </button>
       </div>
     </div>
-
-    <script>
-      let timerInterval = null;
-      let breakInterval = null; // Timer for the break period
-      let remainingTime = 0;
-      let breakTimeRemaining = 0; // Tracks remaining break time
-      let isRunning = false;
-      let isOnBreak = false; // Flag to track if user is on break
-      let notificationsEnabled = true;
-      let soundEnabled = true;
-      let currentAudio = null; // Track the currently playing audio
-
-      // Break duration in seconds (default: 3 minutes)
-      // You can change this value: 120 = 2min, 180 = 3min, 300 = 5min
-      const BREAK_DURATION = 180; // 3 minutes break
-
-      // ========================================
-      // MESSAGES AND AUDIO CONFIGURATION
-      // ========================================
-
-      // Text messages shown in the modal popup
-      // Each message corresponds to an audio file below
-      const messages = [
-        "Time for a break! Stand up and stretch your legs.", // Message 0
-        "Break time! Give your eyes a rest from the screen.", // Message 1
-        "Take a breather! Walk around for a few minutes.", // Message 2
-        "Reminder: Hydrate and take a quick break!", // Message 3
-        "Time to pause! Stretch and refresh your mind.", // Message 4
-        "Break reminder! Step away and relax for a moment.", // Message 5
-      ];
-
-      // Audio file URLs - each one matches a message above
-      // When a notification shows, a random message + its audio will play
-      const audioUrls = [
-        "/audio/break1.mp3", // Plays for message 0: "Time for a break! Stand up and stretch..."
-        "/audio/break2.mp3", // Plays for message 1: "Break time! Give your eyes a rest..."
-        "/audio/break3.mp3", // Plays for message 2: "Take a breather! Walk around..."
-        "/audio/break4.mp3", // Plays for message 3: "Reminder: It's time to hydrate..."
-        "/audio/break5.mp3", // Plays for message 4: "Time to pause! Stretch your arms..."
-        "/audio/break6.mp3", // Plays for message 5: "Break reminder! Step away from your desk..."
-      ];
-
-      // ========================================
-      // NOTIFICATION PERMISSION REQUEST
-      // ========================================
-
-      // Ask user for permission to show desktop notifications when page loads
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-
-      // ========================================
-      // PRESET BUTTON HANDLERS
-      // ========================================
-
-      // Handle clicks on preset time buttons (20min, 30min, etc.)
-      document.querySelectorAll(".preset-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          // Remove 'active' class from all preset buttons
-          document
-            .querySelectorAll(".preset-btn")
-            .forEach((b) => b.classList.remove("active"));
-
-          // Add 'active' class to the clicked button
-          this.classList.add("active");
-
-          // Get the minutes value from the button's data attribute
-          const minutes = parseInt(this.dataset.minutes);
-
-          // Update the custom time inputs to match the preset
-          document.getElementById("hours").value = Math.floor(minutes / 60);
-          document.getElementById("minutes").value = minutes % 60;
-          document.getElementById("seconds").value = 0;
-        });
-      });
-
-      // ========================================
-      // CUSTOM TIME INPUT HANDLERS
-      // ========================================
-
-      // When user manually changes hours, minutes, or seconds
-      // Remove the 'active' state from preset buttons
-      ["hours", "minutes", "seconds"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", function () {
-          document
-            .querySelectorAll(".preset-btn")
-            .forEach((b) => b.classList.remove("active"));
-        });
-      });
-
-      // ========================================
-      // TOGGLE OPTIONS (Notifications & Sound)
-      // ========================================
-
-      function toggleOption(option) {
-        const toggle = document.getElementById(`toggle-${option}`);
-        toggle.classList.toggle("active");
-
-        if (option === "notifications") {
-          // Update notifications enabled flag
-          notificationsEnabled = toggle.classList.contains("active");
-
-          // Request permission if enabling notifications for first time
-          if (notificationsEnabled && Notification.permission === "default") {
-            Notification.requestPermission();
-          }
-        } else if (option === "sound") {
-          // Update sound enabled flag
-          soundEnabled = toggle.classList.contains("active");
-        }
-      }
-
-      // ========================================
-      // START/STOP TIMER CONTROL
-      // ========================================
-
-      function toggleTimer() {
-        if (isRunning) {
-          stopTimer(); // Stop if already running
-        } else {
-          startTimer(); // Start if not running
-        }
-      }
-
-      function startTimer() {
-        // Clear any existing timers to avoid duplicates
-        clearInterval(timerInterval);
-        clearInterval(breakInterval);
-
-        // Get values from the time input fields
-        const hours = parseInt(document.getElementById("hours").value) || 0;
-        const minutes = parseInt(document.getElementById("minutes").value) || 0;
-        const seconds = parseInt(document.getElementById("seconds").value) || 0;
-
-        // Calculate total time in seconds
-        remainingTime = hours * 3600 + minutes * 60 + seconds;
-
-        // Validate that user set a time
-        if (remainingTime === 0) {
-          alert("Please set a time interval!");
-          return;
-        }
-
-        // Update UI to show timer is running
-        isRunning = true;
-        isOnBreak = false;
-        document.getElementById("startBtn").textContent = "Stop Reminder";
-        document.getElementById("startBtn").classList.add("active");
-        document.getElementById("status").classList.add("active");
-
-        // Show initial countdown
-        updateCountdown();
-
-        // Start the work timer - counts down every second
-        timerInterval = setInterval(() => {
-          remainingTime--;
-
-          // When work time reaches zero, start break
-          if (remainingTime <= 0) {
-            startBreakTime(); // Trigger break period
-          }
-
-          updateCountdown(); // Update the display
-        }, 1000);
-      }
-
-      // ========================================
-      // BREAK TIME MANAGEMENT
-      // ========================================
-
-      function startBreakTime() {
-        // Avoid starting multiple break timers / playing audio multiple times
-        if (isOnBreak) return;
-
-        // Stop the work timer so startBreakTime isn't called repeatedly
-        clearInterval(timerInterval);
-
-        // Set flag to indicate we're on break
-        isOnBreak = true;
-
-        // Set break duration
-        breakTimeRemaining = BREAK_DURATION;
-
-        // Show the notification with random message and audio
-        showNotification();
-
-        // Update status text to show it's break time
-        document.querySelector(".status-text").textContent =
-          "Break time! Resuming in:";
-
-        // Start break countdown timer
-        breakInterval = setInterval(() => {
-          breakTimeRemaining--;
-
-          // Update countdown display to show break time
-          updateBreakCountdown();
-
-          // When break is over, resume work timer
-          if (breakTimeRemaining <= 0) {
-            // Clear this interval here and perform end-of-break actions
-            clearInterval(breakInterval);
-            endBreakTime();
-          }
-        }, 1000);
-      }
-
-      function endBreakTime() {
-        // Ensure break interval is cleared
-        clearInterval(breakInterval);
-
-        // Reset flags
-        isOnBreak = false;
-
-        // Get the original work duration from inputs
-        const hours = parseInt(document.getElementById("hours").value) || 0;
-        const minutes = parseInt(document.getElementById("minutes").value) || 0;
-        const seconds = parseInt(document.getElementById("seconds").value) || 0;
-
-        // Reset work timer to original duration
-        remainingTime = hours * 3600 + minutes * 60 + seconds;
-
-        // Update status text back to work mode
-        document.querySelector(".status-text").textContent = "Next break in:";
-
-        // Restart the work timer so the cycle continues
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-          remainingTime--;
-
-          if (remainingTime <= 0) {
-            startBreakTime();
-          }
-
-          updateCountdown();
-        }, 1000);
-      }
-
-      function stopTimer() {
-        // Stop all timers
-        isRunning = false;
-        isOnBreak = false;
-        clearInterval(timerInterval);
-        clearInterval(breakInterval);
-
-        // Stop any currently playing audio
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-          currentAudio = null;
-        }
-
-        // Reset UI
-        document.getElementById("startBtn").textContent = "Start Reminder";
-        document.getElementById("startBtn").classList.remove("active");
-        document.getElementById("status").classList.remove("active");
-        document.querySelector(".status-text").textContent = "Next break in:";
-      }
-
-      // ========================================
-      // COUNTDOWN DISPLAY UPDATES
-      // ========================================
-
-      function updateCountdown() {
-        // If on break, show break countdown instead
-        if (isOnBreak) {
-          updateBreakCountdown();
-          return;
-        }
-
-        // Calculate hours, minutes, seconds from remaining time
-        const hours = Math.floor(remainingTime / 3600);
-        const minutes = Math.floor((remainingTime % 3600) / 60);
-        const seconds = remainingTime % 60;
-
-        // Format and display as HH:MM:SS
-        document.getElementById("countdown").textContent = `${String(
-          hours
-        ).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-          seconds
-        ).padStart(2, "0")}`;
-      }
-
-      function updateBreakCountdown() {
-        // Calculate minutes and seconds from break time
-        const minutes = Math.floor(breakTimeRemaining / 60);
-        const seconds = breakTimeRemaining % 60;
-
-        // Format and display break time as MM:SS
-        document.getElementById("countdown").textContent = `${String(
-          minutes
-        ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      }
-
-      // ========================================
-      // NOTIFICATION SYSTEM
-      // ========================================
-
-      function showNotification() {
-        // Stop any currently playing audio first
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-        }
-
-        // Pick a random message and its corresponding audio
-        // This ensures the SAME index is used for both message and audio
-        const randomIndex = Math.floor(Math.random() * messages.length);
-        const message = messages[randomIndex];
-
-        // Show the modal popup with the selected message
-        document.getElementById("modal").classList.add("show");
-        document.querySelector(".modal-message").textContent = message;
-
-        // Play the corresponding audio if sound is enabled
-        // We pass the SAME randomIndex so the audio matches the message
-        if (soundEnabled) {
-          playSound(randomIndex); // Pass the index to play matching audio
-        }
-
-        // Show browser notification if permissions granted
-        if (notificationsEnabled && Notification.permission === "granted") {
-          new Notification("Break Time! ⏰", {
-            body: message,
-            icon: "⏰",
-            badge: "⏰",
-          });
-        }
-      }
-
-      function dismissNotification() {
-        // Close the modal when user clicks "Got it!"
-        document.getElementById("modal").classList.remove("show");
-
-        // Stop the audio when dismissing notification
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-          currentAudio = null;
-        }
-      }
-
-      // ========================================
-      // AUDIO PLAYBACK SYSTEM
-      // ========================================
-
-      function playSound(index) {
-        // Exit if sound is disabled
-        if (!soundEnabled) return;
-
-        // Stop any currently playing audio first
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio.currentTime = 0;
-        }
-
-        // Create a new Audio element with the URL at the specified index
-        // IMPORTANT: Only ONE audio file is created and played
-        currentAudio = new Audio(audioUrls[index]);
-
-        // Set volume level (0.0 = silent, 1.0 = full volume)
-        currentAudio.volume = 0.8; // 80% volume - adjust as needed
-
-        // Play the audio file
-        currentAudio.play().catch((error) => {
-          // If audio fails to play, log error and use fallback beep
-          console.error("Error playing audio:", error);
-          playBeepSound(); // Fallback to simple beep sound
-        });
-
-        // Clean up when audio finishes playing
-        currentAudio.addEventListener("ended", () => {
-          currentAudio = null;
-        });
-      }
-
-      // ========================================
-      // FALLBACK BEEP SOUND
-      // ========================================
-
-      function playBeepSound() {
-        // Creates a simple beep using Web Audio API
-        // This is a backup if audio files fail to load
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 800; // Frequency in Hz
-        oscillator.type = "sine"; // Sine wave for smooth tone
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.01,
-          audioContext.currentTime + 0.5
-        );
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      }
-    </script>
+    <!-- scripts -->
+    <script src="/scripts.js"></script>
   </body>
 </html>

@@ -37,34 +37,31 @@ body {
 }
 
 .header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+.logo {
+  flex-shrink: 0;
 }
 
-.icon img {
-  width: 64px;
-  height: 64px;
+.logo img {
+  width: 56px;
+  height: 56px;
   object-fit: contain;
 }
 
-h1 {
+.header-text h1 {
   color: #2d3748;
   font-size: 28px;
-  margin-bottom: 8px;
 }
 
-.subtitle {
+.header-text .subtitle {
   color: #718096;
   font-size: 14px;
 }
-
 .preset-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

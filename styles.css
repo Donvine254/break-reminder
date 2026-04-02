@@ -295,7 +295,6 @@ body {
   margin: 8px 0px;
   text-align: center;
 }
-
 .status {
   margin-top: 20px;
   padding: 16px 18px;
@@ -303,21 +302,35 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   display: none;
-  /* layout */
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  /* depth */
-  box-shadow: var(--shadow);
 }
 
 .status.active {
-  display: flex;
+  display: block;
   animation: fadeIn 0.3s ease-out;
 }
 
+/* .status {
+  margin-top: 20px;
+  padding: 16px 18px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: none;
+
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  box-shadow: var(--shadow);
+} */
+
+/* .status.active {
+  display: flex;
+  animation: fadeIn 0.3s ease-out;
+}  */
+
 /* LEFT SIDE */
-.left-items {
+/* .left-items {
   justify-content: center;
   gap: 4px;
   text-align: left;
@@ -333,10 +346,10 @@ body {
   font-weight: 600;
   letter-spacing: 1px;
   color: var(--text-1);
-}
+} */
 
 /* Progress ring wrapper */
-.ring-wrap {
+/* .ring-wrap {
   position: relative;
   width: 52px;
   height: 52px;
@@ -348,20 +361,20 @@ body {
 
 .prog-ring {
   transform: rotate(-90deg);
-}
+} */
 
 /* ring background */
-.ring-bg {
+/* .ring-bg {
   stroke: #22c55e;
-}
+} */
 
 /* ring progress */
-.ring-fill {
+/* .ring-fill {
   stroke: url(#ringGrad);
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
   filter: drop-shadow(var(--glow));
-}
+} */
 
 @keyframes fadeIn {
   from {

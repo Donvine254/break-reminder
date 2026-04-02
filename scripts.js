@@ -253,33 +253,21 @@ function stopTimer() {
 // ========================================
 // COUNTDOWN DISPLAY UPDATES
 // ========================================
-function updateRingProgress(current) {
-  const ring = document.getElementById("ringFill");
-  if (!ring) return;
-  const circumference = 138.23;
-  if (totalTime === 0) return;
-  const progress = current / totalTime;
-  const offset = circumference * (1 - progress);
-  ring.style.strokeDashoffset = offset;
-}
 function updateCountdown() {
   // If on break, show break countdown instead
   if (isOnBreak) {
     updateBreakCountdown();
     return;
   }
-
   // Calculate hours, minutes, seconds from remaining time
   const hours = Math.floor(remainingTime / 3600);
   const minutes = Math.floor((remainingTime % 3600) / 60);
   const seconds = remainingTime % 60;
-
   // Format and display as HH:MM:SS
   document.getElementById("countdown").textContent = `${String(hours).padStart(
     2,
     "0",
   )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  updateRingProgress(remainingTime);
 }
 
 function updateBreakCountdown() {

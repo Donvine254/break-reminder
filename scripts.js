@@ -1,6 +1,7 @@
 let timerInterval = null;
 let breakInterval = null; // Timer for the break period
 let remainingTime = 0;
+let totalTime = 0;
 let breakTimeRemaining = 0; // Tracks remaining break time
 let isRunning = false;
 let isOnBreak = false; // Flag to track if user is on break
@@ -129,9 +130,9 @@ function startTimer() {
   const hours = parseInt(document.getElementById("hours").value) || 0;
   const minutes = parseInt(document.getElementById("minutes").value) || 0;
   const seconds = parseInt(document.getElementById("seconds").value) || 0;
-
+  totalTime = hours * 3600 + minutes * 60 + seconds;
   // Calculate total time in seconds
-  remainingTime = hours * 3600 + minutes * 60 + seconds;
+  remainingTime = totalTime;
 
   // Validate that user set a time
   if (remainingTime === 0) {
@@ -208,14 +209,9 @@ function endBreakTime() {
 
   // Reset flags
   isOnBreak = false;
-
-  // Get the original work duration from inputs
-  const hours = parseInt(document.getElementById("hours").value) || 0;
-  const minutes = parseInt(document.getElementById("minutes").value) || 0;
-  const seconds = parseInt(document.getElementById("seconds").value) || 0;
-
+  totalTime = hours * 3600 + minutes * 60 + seconds;
   // Reset work timer to original duration
-  remainingTime = hours * 3600 + minutes * 60 + seconds;
+  remainingTime = totalTime;
 
   // Update status text back to work mode
   document.querySelector(".status-text").textContent = "Next break in:";
@@ -257,7 +253,15 @@ function stopTimer() {
 // ========================================
 // COUNTDOWN DISPLAY UPDATES
 // ========================================
-
+function updateRingProgress(current) {
+  const ring = document.getElementById("ringFill");
+  if (!ring) return;
+  const circumference = 138.23;
+  if (totalTime === 0) return;
+  const progress = current / totalTime;
+  const offset = circumference * (1 - progress);
+  ring.style.strokeDashoffset = offset;
+}
 function updateCountdown() {
   // If on break, show break countdown instead
   if (isOnBreak) {
@@ -275,6 +279,7 @@ function updateCountdown() {
     2,
     "0",
   )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  updateRingProgress(remainingTime);
 }
 
 function updateBreakCountdown() {
@@ -398,8 +403,8 @@ function playBeepSound() {
 }
 
 // initialize service worker
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js");
-  });
-}
+// if ("serviceWorker" in navigator) {
+//   window.addEventListener("load", () => {
+//     navigator.serviceWorker.register("/sw.js");
+//   });
+// }

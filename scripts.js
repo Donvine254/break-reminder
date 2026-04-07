@@ -113,6 +113,17 @@ function toggleOption(option) {
 // START/STOP TIMER CONTROL
 // ========================================
 
+function startWorkTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    if (remainingTime <= 0) {
+      startBreakTime();
+    }
+    updateCountdown();
+  }, 1000);
+}
+
 function toggleTimer() {
   if (isRunning) {
     stopTimer(); // Stop if already running
@@ -122,45 +133,26 @@ function toggleTimer() {
 }
 
 function startTimer() {
-  // Clear any existing timers to avoid duplicates
   clearInterval(timerInterval);
   clearInterval(breakInterval);
-
-  // Get values from the time input fields
   const hours = parseInt(document.getElementById("hours").value) || 0;
   const minutes = parseInt(document.getElementById("minutes").value) || 0;
   const seconds = parseInt(document.getElementById("seconds").value) || 0;
-  totalTime = hours * 3600 + minutes * 60 + seconds;
-  // Calculate total time in seconds
-  remainingTime = totalTime;
+  remainingTime = hours * 3600 + minutes * 60 + seconds;
 
-  // Validate that user set a time
   if (remainingTime === 0) {
     alert("Please set a time interval!");
     return;
   }
 
-  // Update UI to show timer is running
   isRunning = true;
   isOnBreak = false;
   document.getElementById("startBtn").textContent = "Stop Reminder";
   document.getElementById("startBtn").classList.add("active");
   document.getElementById("status").classList.add("active");
 
-  // Show initial countdown
   updateCountdown();
-
-  // Start the work timer - counts down every second
-  timerInterval = setInterval(() => {
-    remainingTime--;
-
-    // When work time reaches zero, start break
-    if (remainingTime <= 0) {
-      startBreakTime(); // Trigger break period
-    }
-
-    updateCountdown(); // Update the display
-  }, 1000);
+  startWorkTimer();
 }
 
 // ========================================
@@ -204,29 +196,27 @@ function startBreakTime() {
 }
 
 function endBreakTime() {
-  // Ensure break interval is cleared
   clearInterval(breakInterval);
-
-  // Reset flags
   isOnBreak = false;
-  totalTime = hours * 3600 + minutes * 60 + seconds;
-  // Reset work timer to original duration
-  remainingTime = totalTime;
 
-  // Update status text back to work mode
+  const hours = parseInt(document.getElementById("hours").value) || 0;
+  const minutes = parseInt(document.getElementById("minutes").value) || 0;
+  const seconds = parseInt(document.getElementById("seconds").value) || 0;
+
+  remainingTime = hours * 3600 + minutes * 60 + seconds;
+
   document.querySelector(".status-text").textContent = "Next break in:";
-
-  // Restart the work timer so the cycle continues
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    remainingTime--;
-
-    if (remainingTime <= 0) {
-      startBreakTime();
+  if (notificationsEnabled && Notification.permission === "granted") {
+    new Notification("Break Time! ⏰", {
+      body: "Break time over! ✅. Back to work! Your next break reminder is set.",
+      icon: "⏰",
+      badge: "⏰",
+    });
+    if (soundEnabled) {
+      playBeepSound();
     }
-
-    updateCountdown();
-  }, 1000);
+  }
+  startWorkTimer();
 }
 
 function stopTimer() {
